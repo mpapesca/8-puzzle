@@ -11,6 +11,9 @@ RIGHT = 1
 UP = -3
 DOWN = 3
 nodes = []
+nodeindex = 0
+testedlayouts = []
+
 
 
 # NODEINDEX = None
@@ -255,7 +258,7 @@ def moveblankspace(direction):
         switched_piece = boardpieces[next_position]
         boardpieces[next_position] = 0
         boardpieces[current_position] = switched_piece
-        displayboard()
+        # displayboard()
         time.sleep(1)
         return next_position  # Return piece that was switched with blank space.
     else:
@@ -267,23 +270,37 @@ def moveblankspace(direction):
 
 
 def checksuccess():
-    global boardpieces
+    global boardpieces, nodeindex, nodes
     if boardpieces == [0, 1, 2, 3, 4, 5, 6, 7, 8]:
         displayboard()
         return 1
-    else:
-        return 0
+    elif nodeindex % 100 == 0 and nodeindex != 0:
+        # for num in range(0,nodeindex):
+        #     print nodes[num].parent, " -> ", nodes[num].id
+        #     boardpieces = nodes[num].layout[:]
+        displayboard()
+    return 0
 
 
 # End of checksuccess()
 
 
+def scanpreviouslayouts():
+    global boardpieces
+    currentlayout = "%d%d%d%d%d%d%d%d%d" % (boardpieces[0], boardpieces[1], boardpieces[2], boardpieces[3], boardpieces[4], boardpieces[5], boardpieces[6], boardpieces[7], boardpieces[8])
+    for index in range(0, len(testedlayouts)):
+        if currentlayout == testedlayouts[index]:
+            return 0
+    testedlayouts.append(currentlayout)
+    return 1
+
+
+
 def solve():
 
-    global boardpieces, globalPiecesInfo, openList, closedList, nodes
+    global boardpieces, globalPiecesInfo, openList, closedList, nodes, nodeindex
     if checksuccess():
         return 1
-    nodeindex = 0
 
     firstnode = Node()
     firstnode.id = nodeindex
@@ -298,8 +315,8 @@ def solve():
         for direction in nodes[item].moves:
             boardpieces = nodes[parentnode].layout[:]
             move = moveblankspace(direction)
-            if move != -1:
-                # print "Parent: ", parentnode, "child", nodeindex
+            newlayout = scanpreviouslayouts()
+            if move != -1 and newlayout:
                 child = Node()
                 child.id = nodeindex
                 nodeindex += 1
